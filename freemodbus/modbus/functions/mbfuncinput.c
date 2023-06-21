@@ -44,6 +44,7 @@
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
+#include "mb_m.h"
 #include "mbframe.h"
 #include "mbproto.h"
 #include "mbconfig.h"
@@ -126,6 +127,11 @@ eMBFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen )
         eStatus = MB_EX_ILLEGAL_DATA_VALUE;
     }
     return eStatus;
+}
+
+void eMBMasterException( eMBException exception )
+{
+	eMBMasterExceptionCB( exception );
 }
 
 #endif

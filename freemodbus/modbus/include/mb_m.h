@@ -81,6 +81,50 @@ PR_BEGIN_EXTERN_C
  */
 #define MB_MASTER_TCP_PORT_USE_DEFAULT 0
 
+#ifndef _MB_H
+/* ----------------------- Type definitions ---------------------------------*/
+/*! \ingroup modbus
+ * \brief Modbus serial transmission modes (RTU/ASCII).
+ *
+ * Modbus serial supports two transmission modes. Either ASCII or RTU. RTU
+ * is faster but has more hardware requirements and requires a network with
+ * a low jitter. ASCII is slower and more reliable on slower links (E.g. modems)
+ */
+typedef enum {
+    MB_RTU,   /*!< RTU transmission mode. */
+    MB_ASCII, /*!< ASCII transmission mode. */
+    MB_TCP    /*!< TCP mode. */
+} eMBMode;
+/*! \ingroup modbus
+ * \brief If register should be written or read.
+ *
+ * This value is passed to the callback functions which support either
+ * reading or writing register values. Writing means that the application
+ * registers should be updated and reading means that the modbus protocol
+ * stack needs to know the current register values.
+ *
+ * \see eMBRegHoldingCB( ), eMBRegCoilsCB( ), eMBRegDiscreteCB( ) and
+ *   eMBRegInputCB( ).
+ */
+typedef enum {
+    MB_REG_READ, /*!< Read register values and pass to protocol stack. */
+    MB_REG_WRITE /*!< Update register values. */
+} eMBRegisterMode;
+/*! \ingroup modbus
+ * \brief Errorcodes used by all function in the protocol stack.
+ */
+typedef enum {
+    MB_ENOERR,                  /*!< no error. */
+    MB_ENOREG,                  /*!< illegal register address. */
+    MB_EINVAL,                  /*!< illegal argument. */
+    MB_EPORTERR,                /*!< porting layer error. */
+    MB_ENORES,                  /*!< insufficient resources. */
+    MB_EIO,                     /*!< I/O error. */
+    MB_EILLSTATE,               /*!< protocol stack in illegal state. */
+    MB_ETIMEDOUT                /*!< timeout error occurred. */
+} eMBErrorCode;
+#endif
+
 /*! \ingroup modbus
  * \brief Errorcodes used by all function in the Master request.
  */
@@ -344,6 +388,11 @@ eMBErrorCode eMBMasterRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
 eMBErrorCode eMBMasterRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress,
 		USHORT usNDiscrete );
 
+/*! \ingroup modbus_registers
+ * \brief Callback when exception is received form modbus slave.
+ */
+void eMBMasterExceptionCB( UCHAR exception );
+
 /*! \ingroup modbus
  *\brief These Modbus functions are called for user when Modbus run in Master Mode.
  */
@@ -390,6 +439,8 @@ eMBException
 eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen );
 eMBException
 eMBMasterFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+
+void eMBMasterException( eMBException exception );
 
 /* \ingroup modbus
  * \brief These functions are interface for Modbus Master

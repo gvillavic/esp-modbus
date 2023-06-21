@@ -162,7 +162,7 @@ static esp_err_t mbc_serial_master_set_descriptor(const mb_parameter_descriptor_
 }
 
 // Send custom Modbus request defined as mb_param_request_t structure
-static esp_err_t mbc_serial_master_send_request(mb_param_request_t* request, void* data_ptr)
+static esp_err_t mbc_serial_master_send_request(mb_param_request_t* request, void* data_ptr, uint8_t* exception_ptr)
 {
     MB_MASTER_CHECK((mbm_interface_ptr != NULL),
                     ESP_ERR_INVALID_STATE,
@@ -177,15 +177,16 @@ static esp_err_t mbc_serial_master_send_request(mb_param_request_t* request, voi
     esp_err_t error = ESP_FAIL;
 
     if (xMBMasterRunResTake(MB_SERIAL_API_RESP_TICS)) {
-        
+
         uint8_t mb_slave_addr = request->slave_addr;
         uint8_t mb_command = request->command;
         uint16_t mb_offset = request->reg_start;
         uint16_t mb_size = request->reg_size;
-    
+
         // Set the buffer for callback function processing of received data
         mbm_opts->mbm_reg_buffer_ptr = (uint8_t*)data_ptr;
         mbm_opts->mbm_reg_buffer_size = mb_size;
+        mbm_opts->mbm_exception_ptr = exception_ptr;
 
         vMBMasterRunResRelease();
 
@@ -390,7 +391,7 @@ static esp_err_t mbc_serial_master_get_parameter(uint16_t cid, char* name,
     error = mbc_serial_master_set_request(name, MB_PARAM_READ, &request, &reg_info);
     if ((error == ESP_OK) && (cid == reg_info.cid)) {
         // Send request to read characteristic data
-        error = mbc_serial_master_send_request(&request, value_ptr);
+        error = mbc_serial_master_send_request(&request, value_ptr, NULL);
         if (error == ESP_OK) {
             ESP_LOGD(TAG, "%s: Good response for get cid(%u) = %s",
                                     __FUNCTION__, (unsigned)reg_info.cid, (char*)esp_err_to_name(error));
@@ -425,7 +426,7 @@ static esp_err_t mbc_serial_master_set_parameter(uint16_t cid, char* name,
     error = mbc_serial_master_set_request(name, MB_PARAM_WRITE, &request, &reg_info);
     if ((error == ESP_OK) && (cid == reg_info.cid)) {
         // Send request to write characteristic data
-        error = mbc_serial_master_send_request(&request, value_ptr);
+        error = mbc_serial_master_send_request(&request, value_ptr, NULL);
         if (error == ESP_OK) {
             ESP_LOGD(TAG, "%s: Good response for set cid(%u) = %s",
                                     __FUNCTION__, (unsigned)reg_info.cid, (char*)esp_err_to_name(error));
@@ -478,6 +479,10 @@ eMBErrorCode eMBRegInputCBSerialMaster(UCHAR * pucRegBuffer, USHORT usAddress,
             _XFER_2_RD(pucInputBuffer, pucRegBuffer);
             usRegs -= 1;
         }
+
+        if (mbm_interface_ptr->opts.mbm_exception_ptr) {
+            *(mbm_interface_ptr->opts.mbm_exception_ptr) = 0;
+        }
     } else {
         eStatus = MB_ENOREG;
     }
@@ -527,6 +532,10 @@ eMBErrorCode eMBRegHoldingCBSerialMaster(UCHAR * pucRegBuffer, USHORT usAddress,
                     usRegs -= 1;
                 };
                 break;
+        }
+
+        if (mbm_interface_ptr->opts.mbm_exception_ptr) {
+            *(mbm_interface_ptr->opts.mbm_exception_ptr) = 0;
         }
     } else {
         eStatus = MB_ENOREG;
@@ -581,6 +590,10 @@ eMBErrorCode eMBRegCoilsCBSerialMaster(UCHAR* pucRegBuffer, USHORT usAddress,
                 }
                 break;
         } // switch ( eMode )
+
+        if (mbm_interface_ptr->opts.mbm_exception_ptr) {
+            *(mbm_interface_ptr->opts.mbm_exception_ptr) = 0;
+        }
     } else {
         // If the configuration or input parameters are incorrect then return error to stack
         eStatus = MB_ENOREG;
@@ -631,10 +644,21 @@ eMBErrorCode eMBRegDiscreteCBSerialMaster(UCHAR * pucRegBuffer, USHORT usAddress
         {
             xMBUtilSetBits(pucDiscreteInputBuf, iRegBitIndex - (usAddress % 8), usNDiscrete, *pucRegBuffer++);
         }
+
+        if (mbm_interface_ptr->opts.mbm_exception_ptr) {
+            *(mbm_interface_ptr->opts.mbm_exception_ptr) = 0;
+        }
     } else {
         eStatus = MB_ENOREG;
     }
     return eStatus;
+}
+
+void eMBExceptionCBSerialMaster(uint8_t exception)
+{
+	if (mbm_interface_ptr->opts.mbm_exception_ptr) {
+        *(mbm_interface_ptr->opts.mbm_exception_ptr) = exception;
+    }
 }
 
 // Initialization of resources for Modbus serial master controller
@@ -693,6 +717,7 @@ esp_err_t mbc_serial_master_create(void** handler)
     mbm_interface_ptr->master_reg_cb_input = eMBRegInputCBSerialMaster;
     mbm_interface_ptr->master_reg_cb_holding = eMBRegHoldingCBSerialMaster;
     mbm_interface_ptr->master_reg_cb_coils = eMBRegCoilsCBSerialMaster;
+    mbm_interface_ptr->master_exception_cb = eMBExceptionCBSerialMaster;
 
     *handler = mbm_interface_ptr;
 

@@ -16,5 +16,6 @@ typedef eMBErrorCode (*reg_input_cb)(UCHAR*, USHORT, USHORT);
 typedef eMBErrorCode (*reg_holding_cb)(UCHAR*, USHORT, USHORT, eMBRegisterMode);
 typedef eMBErrorCode (*reg_coils_cb)(UCHAR*, USHORT, USHORT, eMBRegisterMode);
 typedef eMBErrorCode (*reg_discrete_cb)(UCHAR*, USHORT, USHORT);
+typedef void (*exception_cb)(UCHAR);
 
 #endif /* _ESP_MODBUS_CALLBACKS_H_ */

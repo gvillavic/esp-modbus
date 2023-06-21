@@ -78,6 +78,8 @@ typedef enum
 
 typedef         eMBException( *pxMBFunctionHandler ) ( UCHAR * pucFrame, USHORT * pusLength );
 
+typedef         void ( *pxMBExceptionHandler ) ( eMBException exception );
+
 typedef struct
 {
     UCHAR           ucFunctionCode;

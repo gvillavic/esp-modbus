@@ -80,7 +80,7 @@ esp_err_t mbc_master_get_parameter(uint16_t cid, char* name, uint8_t* value, uin
 /**
  * Send custom Modbus request defined as mb_param_request_t structure
  */
-esp_err_t mbc_master_send_request(mb_param_request_t* request, void* data_ptr)
+esp_err_t mbc_master_send_request(mb_param_request_t* request, void* data_ptr, uint8_t* exception_ptr)
 {
     esp_err_t error = ESP_OK;
     MB_MASTER_CHECK((master_interface_ptr != NULL),
@@ -89,7 +89,7 @@ esp_err_t mbc_master_send_request(mb_param_request_t* request, void* data_ptr)
     MB_MASTER_CHECK((master_interface_ptr->send_request != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Master interface is not correctly initialized.");
-    error = master_interface_ptr->send_request(request, data_ptr);
+    error = master_interface_ptr->send_request(request, data_ptr, exception_ptr);
     MB_MASTER_CHECK((error == ESP_OK),
                     error,
                     "Master send request failure error=(0x%x) (%s).",
@@ -234,4 +234,9 @@ eMBErrorCode eMBMasterRegInputCB(UCHAR * pucRegBuffer, USHORT usAddress,
                     "Master interface is not correctly initialized.");
     error = master_interface_ptr->master_reg_cb_input(pucRegBuffer, usAddress, usNRegs);
     return error;
+}
+
+void eMBMasterExceptionCB(UCHAR exception)
+{
+    master_interface_ptr->master_exception_cb(exception);
 }
