@@ -152,6 +152,8 @@ static xMBFunctionHandler xMasterFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 #endif
 };
 
+static pxMBExceptionHandler xMasterExceptHandler = eMBMasterException;
+
 /* ----------------------- Start implementation -----------------------------*/
 #if MB_MASTER_TCP_ENABLED
 eMBErrorCode
@@ -428,6 +430,7 @@ eMBMasterPoll( void )
                     /* If master has exception, will send error process event. Otherwise the master is idle.*/
                     if ( eException != MB_EX_NONE ) {
                         vMBMasterSetErrorType( EV_ERROR_EXECUTE_FUNCTION );
+                        xMasterExceptHandler( eException );
                         ( void ) xMBMasterPortEventPost( EV_MASTER_ERROR_PROCESS );
                     } else {
                         if ( eMBMasterGetErrorType( ) == EV_ERROR_INIT ) {

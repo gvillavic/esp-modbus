@@ -61,6 +61,7 @@ typedef struct {
     mb_communication_info_t mbm_comm;                   /*!< Modbus communication info */
     uint8_t* mbm_reg_buffer_ptr;                        /*!< Modbus data buffer pointer */
     uint16_t mbm_reg_buffer_size;                       /*!< Modbus data buffer size */
+    uint8_t* mbm_exception_ptr;                         /*!< Modbus exception pointer */
     TaskHandle_t mbm_task_handle;                       /*!< Modbus task handle */
     EventGroupHandle_t mbm_event_group;                 /*!< Modbus controller event group */
     const mb_parameter_descriptor_t* mbm_param_descriptor_table; /*!< Modbus controller parameter description table */
@@ -73,7 +74,7 @@ typedef struct {
 
 typedef esp_err_t (*iface_get_cid_info)(uint16_t, const mb_parameter_descriptor_t**); /*!< Interface get_cid_info method */
 typedef esp_err_t (*iface_get_parameter)(uint16_t, char*, uint8_t*, uint8_t*);        /*!< Interface get_parameter method */
-typedef esp_err_t (*iface_send_request)(mb_param_request_t*, void*);                  /*!< Interface send_request method */
+typedef esp_err_t (*iface_send_request)(mb_param_request_t*, void*, uint8_t*);               /*!< Interface send_request method */
 typedef esp_err_t (*iface_set_descriptor)(const mb_parameter_descriptor_t*, const uint16_t); /*!< Interface set_descriptor method */
 typedef esp_err_t (*iface_set_parameter)(uint16_t, char*, uint8_t*, uint8_t*);        /*!< Interface set_parameter method */
 
@@ -99,6 +100,7 @@ typedef struct {
     reg_input_cb master_reg_cb_input;       /*!< Stack callback input rw method */
     reg_holding_cb master_reg_cb_holding;   /*!< Stack callback holding rw method */
     reg_coils_cb master_reg_cb_coils;       /*!< Stack callback coils rw method */
+    exception_cb master_exception_cb;       /*!< Stack callback exception method */
 } mb_master_interface_t;
 
 #endif //_MB_CONTROLLER_MASTER_H

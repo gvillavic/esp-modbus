@@ -190,6 +190,7 @@ esp_err_t mbc_master_set_descriptor(const mb_parameter_descriptor_t* descriptor,
  *
  * @param[in] request pointer to request structure of type mb_param_request_t
  * @param[in] data_ptr pointer to data buffer to send or received data (dependent of command field in request)
+ * @param[inout] exception_ptr pointer to Modbus master exception
  *
  * @return
  *     - esp_err_t ESP_OK - request was successful
@@ -199,7 +200,7 @@ esp_err_t mbc_master_set_descriptor(const mb_parameter_descriptor_t* descriptor,
  *     - esp_err_t ESP_ERR_NOT_SUPPORTED - the request command is not supported by slave
  *     - esp_err_t ESP_FAIL - slave returned an exception or other failure
  */
-esp_err_t mbc_master_send_request(mb_param_request_t* request, void* data_ptr);
+esp_err_t mbc_master_send_request(mb_param_request_t* request, void* data_ptr, uint8_t* exception_ptr);
 
 /**
  * @brief Get information about supported characteristic defined as cid. Uses parameter description table to get
