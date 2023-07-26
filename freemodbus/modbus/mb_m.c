@@ -150,6 +150,8 @@ static xMBFunctionHandler xMasterFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     {MB_FUNC_READ_DISCRETE_INPUTS, eMBMasterFuncReadDiscreteInputs},
 #endif
+
+    {MB_FUNC_WRITE_BLOCK, eMBMasterFuncWriteBlock},
 };
 
 static pxMBExceptionHandler xMasterExceptHandler = eMBMasterException;

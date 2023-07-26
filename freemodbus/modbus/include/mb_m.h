@@ -440,6 +440,14 @@ eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen );
 eMBException
 eMBMasterFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
 
+// proprietary functions
+eMBMasterReqErrCode
+eMBMasterReqWriteBlock( UCHAR ucSndAddr,
+        uint32_t flash_addr, USHORT * pusDataBuffer, uint16_t data_size, LONG lTimeOut );
+eMBException
+eMBMasterFuncWriteBlock( UCHAR * pucFrame, USHORT * usLen );
+// end proprietary
+
 void eMBMasterException( eMBException exception );
 
 /* \ingroup modbus

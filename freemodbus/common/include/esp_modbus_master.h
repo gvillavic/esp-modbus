@@ -105,6 +105,15 @@ typedef struct {
 } mb_param_request_t;
 
 /**
+ * @brief Modbus register request write block type structure
+ */
+typedef struct {
+    uint8_t slave_addr;             /*!< Modbus slave address */
+    uint8_t command;                /*!< Modbus command to send */
+    uint32_t flash_addr;             /*!< Modbus start register */
+} mb_param_request_wb_t;
+
+/**
  * @brief Initialize Modbus controller and stack for TCP port
  *
  * @param[out] handler handler(pointer) to master data structure
@@ -201,6 +210,24 @@ esp_err_t mbc_master_set_descriptor(const mb_parameter_descriptor_t* descriptor,
  *     - esp_err_t ESP_FAIL - slave returned an exception or other failure
  */
 esp_err_t mbc_master_send_request(mb_param_request_t* request, void* data_ptr, uint8_t* exception_ptr);
+
+/**
+ * @brief Send data request as defined in parameter request, waits response
+ *        from slave and returns status of command execution. This function provides standard way
+ *        for read/write access to Modbus devices in the network.
+ *
+ * @param[in] request pointer to request structure of type mb_param_request_t
+ * @param[in] data_ptr pointer to data buffer to send or received data (dependent of command field in request)
+ *
+ * @return
+ *     - esp_err_t ESP_OK - request was successful
+ *     - esp_err_t ESP_ERR_INVALID_ARG - invalid argument of function
+ *     - esp_err_t ESP_ERR_INVALID_RESPONSE - an invalid response from slave
+ *     - esp_err_t ESP_ERR_TIMEOUT - operation timeout or no response from slave
+ *     - esp_err_t ESP_ERR_NOT_SUPPORTED - the request command is not supported by slave
+ *     - esp_err_t ESP_FAIL - slave returned an exception or other failure
+ */
+esp_err_t mbc_master_send_write_block_request(mb_param_request_wb_t* request, void *data_ptr, uint16_t data_size, uint8_t * exception_ptr);
 
 /**
  * @brief Get information about supported characteristic defined as cid. Uses parameter description table to get

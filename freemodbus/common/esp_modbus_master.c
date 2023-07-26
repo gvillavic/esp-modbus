@@ -98,6 +98,25 @@ esp_err_t mbc_master_send_request(mb_param_request_t* request, void* data_ptr, u
 }
 
 /**
+ * Sends a custom write data block message to send up to 4096 bytes of data
+*/
+esp_err_t mbc_master_send_write_block_request(mb_param_request_wb_t* request, void *data_ptr, uint16_t data_size, uint8_t * exception_ptr)
+{
+    esp_err_t error = ESP_OK;
+    MB_MASTER_CHECK((master_interface_ptr != NULL),
+                    ESP_ERR_INVALID_STATE,
+                    "Master interface is not correctly initialized.");
+    MB_MASTER_CHECK((master_interface_ptr->send_write_block_request != NULL),
+                    ESP_ERR_INVALID_STATE,
+                    "Master interface is not correctly initialized.");
+    error = master_interface_ptr->send_write_block_request(request, data_ptr, data_size, exception_ptr);
+    MB_MASTER_CHECK((error == ESP_OK),
+                    error,
+                    "Master send request failure error=(0x%x) (%s).",
+                    error, esp_err_to_name(error));
+    return ESP_OK;
+}
+/**
  * Set Modbus parameter description table
  */
 esp_err_t mbc_master_set_descriptor(const mb_parameter_descriptor_t* descriptor,

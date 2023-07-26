@@ -273,6 +273,75 @@ static esp_err_t mbc_serial_master_send_request(mb_param_request_t* request, voi
     return error;
 }
 
+// Send custom Modbus request defined as mb_param_request_t structure
+static esp_err_t mbc_serial_master_send_write_block_request(mb_param_request_wb_t* request, void* data_ptr, uint16_t data_size, uint8_t* exception_ptr)
+{
+    MB_MASTER_CHECK((mbm_interface_ptr != NULL),
+                    ESP_ERR_INVALID_STATE,
+                    "Master interface uninitialized.");
+    mb_master_options_t* mbm_opts = &mbm_interface_ptr->opts;
+    MB_MASTER_CHECK((request != NULL),
+                    ESP_ERR_INVALID_ARG, "mb request structure.");
+    MB_MASTER_CHECK((data_ptr != NULL),
+                    ESP_ERR_INVALID_ARG, "mb incorrect data pointer.");
+
+    eMBMasterReqErrCode mb_error = MB_MRE_MASTER_BUSY;
+    esp_err_t error = ESP_FAIL;
+
+    if (xMBMasterRunResTake(MB_SERIAL_API_RESP_TICS)) {
+        uint8_t mb_slave_addr = request->slave_addr;
+        uint8_t mb_command = request->command;
+        uint32_t flash_addr = request->flash_addr;
+
+        // Set the buffer for callback function processing of received data
+        mbm_opts->mbm_reg_buffer_ptr = (uint8_t*)data_ptr;
+        mbm_opts->mbm_reg_buffer_size = data_size;
+        mbm_opts->mbm_exception_ptr = exception_ptr;
+
+        if (mb_command == MB_FUNC_WRITE_BLOCK) {
+                mb_error = eMBMasterReqWriteBlock((UCHAR)mb_slave_addr,
+                                                (ULONG)flash_addr, (USHORT *)data_ptr,
+                                                (USHORT)data_size, (LONG)MB_SERIAL_API_RESP_TICS);
+        }
+        else {
+            ESP_LOGE(TAG, "%s: Incorrect function in request (%u) ",
+                    __FUNCTION__, mb_command);
+            mb_error = MB_MRE_NO_REG;
+        }
+    }
+    // Propagate the Modbus errors to higher level
+    switch(mb_error)
+    {
+        case MB_MRE_NO_ERR:
+            error = ESP_OK;
+            break;
+
+        case MB_MRE_NO_REG:
+            error = ESP_ERR_NOT_SUPPORTED; // Invalid register request
+            break;
+
+        case MB_MRE_TIMEDOUT:
+            error = ESP_ERR_TIMEOUT; // Slave did not send response
+            break;
+
+        case MB_MRE_EXE_FUN:
+        case MB_MRE_REV_DATA:
+            error = ESP_ERR_INVALID_RESPONSE; // Invalid response from slave
+            break;
+
+        case MB_MRE_MASTER_BUSY:
+            error = ESP_ERR_INVALID_STATE; // Master is busy (previous request is pending)
+            break;
+
+        default:
+            ESP_LOGE(TAG, "%s: Incorrect return code (%x) ", __FUNCTION__, (int)mb_error);
+            error = ESP_FAIL;
+            break;
+    }
+
+    return error;
+}
+
 static esp_err_t mbc_serial_master_get_cid_info(uint16_t cid, const mb_parameter_descriptor_t** param_buffer)
 {
     MB_MASTER_CHECK((mbm_interface_ptr != NULL),
@@ -710,6 +779,7 @@ esp_err_t mbc_serial_master_create(void** handler)
     mbm_interface_ptr->get_cid_info = mbc_serial_master_get_cid_info;
     mbm_interface_ptr->get_parameter = mbc_serial_master_get_parameter;
     mbm_interface_ptr->send_request = mbc_serial_master_send_request;
+    mbm_interface_ptr->send_write_block_request = mbc_serial_master_send_write_block_request;
     mbm_interface_ptr->set_descriptor = mbc_serial_master_set_descriptor;
     mbm_interface_ptr->set_parameter = mbc_serial_master_set_parameter;
 

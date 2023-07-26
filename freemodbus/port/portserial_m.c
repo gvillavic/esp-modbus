@@ -168,7 +168,7 @@ static USHORT usMBMasterPortSerialRxPoll(size_t xEventSize)
         }
 #endif
     } else {
-        ESP_LOGE(TAG, "%s: bRxState disabled but junk data (%u bytes) received. ", 
+        ESP_LOGE(TAG, "%s: bRxState disabled but junk data (%u bytes) received. ",
                             __func__, (unsigned)xEventSize);
     }
     return usCnt;

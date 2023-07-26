@@ -78,6 +78,8 @@ typedef esp_err_t (*iface_send_request)(mb_param_request_t*, void*, uint8_t*);  
 typedef esp_err_t (*iface_set_descriptor)(const mb_parameter_descriptor_t*, const uint16_t); /*!< Interface set_descriptor method */
 typedef esp_err_t (*iface_set_parameter)(uint16_t, char*, uint8_t*, uint8_t*);        /*!< Interface set_parameter method */
 
+typedef esp_err_t (*iface_send_write_block_request)(mb_param_request_wb_t*, void*, uint16_t, uint8_t*);   /*!< Interface iface_send_write_block_request method */
+
 /**
  * @brief Modbus controller interface structure
  */
@@ -93,6 +95,7 @@ typedef struct {
     iface_get_cid_info get_cid_info;        /*!< Interface get_cid_info method */
     iface_get_parameter get_parameter;      /*!< Interface get_parameter method */
     iface_send_request send_request;        /*!< Interface send_request method */
+    iface_send_write_block_request send_write_block_request;    /*!< Interface send_write_block_request method */
     iface_set_descriptor set_descriptor;    /*!< Interface set_descriptor method */
     iface_set_parameter set_parameter;      /*!< Interface set_parameter method */
     // Modbus register calback function pointers

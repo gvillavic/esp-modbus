@@ -34,7 +34,7 @@ menu "Modbus configuration"
                 Modbus TCP connection timeout in seconds.
                 Once expired the current connection with the client will be closed
                 and Modbus slave will be waiting for new connection to accept.
-    
+
     config FMB_TCP_UID_ENABLED
         bool "Modbus TCP enable UID (Unit Identifier) support"
         default n
@@ -89,7 +89,7 @@ menu "Modbus configuration"
 
     config FMB_SERIAL_BUF_SIZE
         int "Modbus serial task RX/TX buffer size"
-        range 0 2048
+        range 0 4096
         default 256
         help
                 Modbus serial task RX and TX buffer size for UART driver initialization.

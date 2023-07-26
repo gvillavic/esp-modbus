@@ -28,6 +28,7 @@ set(srcs
     "modbus/functions/mbfuncdisc_m.c"
     "modbus/functions/mbfuncholding.c"
     "modbus/functions/mbfuncholding_m.c"
+    "modbus/functions/mbfuncblock.c"
     "modbus/functions/mbfuncinput.c"
     "modbus/functions/mbfuncinput_m.c"
     "modbus/functions/mbfuncother.c"
