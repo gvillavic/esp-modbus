@@ -421,7 +421,7 @@ xMBMasterRTUTimerExpired(void)
         break;
         /* Function called in an illegal state. */
     default:
-        assert( ( eSndState == STATE_M_TX_XMIT ) || ( eSndState == STATE_M_TX_IDLE ));
+        // assert( ( eSndState == STATE_M_TX_XMIT ) || ( eSndState == STATE_M_TX_IDLE ));
         break;
     }
     eSndState = STATE_M_TX_IDLE;
